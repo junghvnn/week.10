@@ -1,0 +1,324 @@
+/* =========================================================
+   ANIMAL MOTION STUDY — Peacock (shiver · outspread · pause)
+   ========================================================= */
+
+/* ---------- 1. 기본 값(변수) ---------- */
+:root {
+  /* 색상 */
+  --bg: #FFDD00;     /* 배경 */
+  --shape: #1F2F98;  /* 메인 도형 */
+  --text: #000000;   /* 텍스트 */
+
+  /*
+    --u = 포스터의 "1px" 단위.
+    기준 화면(1920 × 1080)에서는 1px이고,
+    창이 작아지면 가로·세로 중 더 작은 비율에 맞춰 함께 줄어듭니다.
+    → 모든 크기를 calc(숫자 * var(--u))로 쓰면 비율이 유지됩니다.
+  */
+  --u: min(calc(100vw / 1920), calc(100vh / 1080));
+
+  /* 끝에서 살짝 튕기는(스프링) ease-out 곡선 */
+  --spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+/* ---------- 2. 초기화 & 전체 화면 ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* 불필요한 스크롤 방지 */
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+
+  /* 포스터를 화면 정가운데에 놓기 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- 3. 포스터 틀 (16:9) ---------- */
+.poster {
+  position: relative;
+  width: calc(1920 * var(--u));
+  height: calc(1080 * var(--u));
+}
+
+/* ---------- 4. 텍스트 ---------- */
+
+/* 제목 + 부제 (왼쪽 위) */
+.poster-head {
+  position: absolute;
+  top: calc(80 * var(--u));
+  left: calc(96 * var(--u));
+}
+
+.title {
+  font-size: calc(88 * var(--u));
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: calc(-1 * var(--u));
+}
+
+.subtitle {
+  margin-top: calc(16 * var(--u));
+  font-size: calc(32 * var(--u));
+}
+
+/* 추가 텍스트 (오른쪽 위) */
+.extra {
+  position: absolute;
+  top: calc(88 * var(--u));
+  right: calc(96 * var(--u));
+  font-size: calc(18 * var(--u));
+  letter-spacing: calc(2 * var(--u));
+}
+
+/* 설명 (왼쪽 아래) */
+.description {
+  position: absolute;
+  left: calc(96 * var(--u));
+  bottom: calc(80 * var(--u));
+  width: calc(520 * var(--u));
+  font-size: calc(22 * var(--u));
+  line-height: 1.45;
+}
+
+/* 행사 정보 (오른쪽 아래, 2 × 2 칸) */
+.info {
+  position: absolute;
+  right: calc(96 * var(--u));
+  bottom: calc(80 * var(--u));
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: calc(64 * var(--u));
+  row-gap: calc(28 * var(--u));
+}
+
+.info dt {
+  font-size: calc(15 * var(--u));
+  letter-spacing: calc(1.5 * var(--u));
+  text-transform: uppercase;
+  margin-bottom: calc(6 * var(--u));
+}
+
+.info dd {
+  font-size: calc(24 * var(--u));
+  font-weight: bold;
+}
+
+/* ---------- 5. 메인 그래픽 영역 ---------- */
+
+/* stage: 마우스 인터랙션이 유지되는 영역 (펼쳐진 도형을 모두 포함하는 크기) */
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1100 * var(--u));
+  height: calc(480 * var(--u));
+  transform: translate(-50%, -50%);
+  outline: none; /* 키보드 포커스 시 테두리 대신 도형이 펼쳐집니다 */
+  z-index: 0;    /* 카드 묶음은 모든 텍스트 뒤에 */
+}
+
+/* 모든 텍스트를 카드보다 앞에 표시 */
+.poster-head,
+.extra,
+.description,
+.info {
+  z-index: 1;
+}
+
+.fan {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- 겹 1: .shape — 인터랙션(펼침) ---
+   JavaScript가 --x, --y, --r, --delay 값을 바꾸면
+   transition 덕분에 부드럽게 이동합니다. 값이 없으면 0(겹친 상태). */
+.shape {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(150 * var(--u));
+  height: calc(200 * var(--u));
+  margin-top: calc(-100 * var(--u));  /* 정가운데 정렬 (높이의 절반) */
+  margin-left: calc(-75 * var(--u));  /* 정가운데 정렬 (너비의 절반) */
+
+  transform-origin: 50% 100%;          /* 아래쪽 중심을 축으로 부채처럼 회전 */
+  transform:
+    translate(calc(var(--x, 0) * var(--u)), calc(var(--y, 0) * var(--u)))
+    rotate(calc(var(--r, 0) * 1deg));
+  /* 기본(접힐 때): 튕김 없이 깔끔하게 감속하며 돌아옴 */
+  transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1) var(--delay, 0s);
+}
+
+/* 펼칠 때: 0.9초 동안 끝에서 살짝 튕기는 스프링 ease-out */
+.fan.is-open .shape {
+  transition: transform 0.9s var(--spring) var(--delay, 0s);
+}
+
+/* 가운데 도형이 가장 위에 오도록 쌓는 순서 지정 */
+.shape:nth-child(1),
+.shape:nth-child(5) { z-index: 1; }
+.shape:nth-child(2),
+.shape:nth-child(4) { z-index: 2; }
+.shape:nth-child(3) { z-index: 3; }
+
+/* --- 겹 2: .shiver — 마우스가 들어올 때 0.5초 떨림 ---
+   펼침(.shape)과 같은 지연 시간(--shiver-delay)으로 동시에 시작하므로
+   "떨면서 퍼지는" 하나의 동작으로 보입니다.
+   (접힐 때 --delay가 바뀌어도 떨림이 튀지 않도록 변수를 따로 둡니다) */
+.shiver {
+  width: 100%;
+  height: 100%;
+}
+
+.fan.is-shivering .shiver {
+  animation: shiver-a 0.5s linear var(--shiver-delay, 0s) both;
+}
+
+/* 도형마다 떨림 패턴·방향을 다르게 해서 불규칙한 느낌을 줍니다 */
+.fan.is-shivering .shape:nth-child(2) .shiver,
+.fan.is-shivering .shape:nth-child(5) .shiver {
+  animation-name: shiver-b;
+}
+
+.fan.is-shivering .shape:nth-child(even) .shiver {
+  animation-direction: reverse;
+}
+
+/* --- 겹 3: .idle — 기본 애니메이션 + 실제로 보이는 사각형 --- */
+.idle {
+  width: 100%;
+  height: 100%;
+  position: relative; /* 안쪽 선·원(::before, ::after)의 기준 */
+  background: var(--shape);
+
+  /*
+    비대칭 카드 모양 (깃털 실루엣)
+    border-radius: 왼위 오른위 오른아래 왼아래 / (세로 반지름도 같은 순서)
+    - 왼쪽 위: 가로 140 × 세로 150의 아주 큰 곡선 → 옆면을 따라 길게 휘어짐
+    - 오른쪽 위: 거의 직각 (10)
+    - 아래 두 모서리: 완전한 직각 (0)
+  */
+  border-radius:
+    calc(140 * var(--u)) calc(10 * var(--u)) 0 0 /
+    calc(150 * var(--u)) calc(10 * var(--u)) 0 0;
+
+  transform-origin: 50% 100%;
+  animation: idle-peacock 6s infinite;
+}
+
+/* 깃털 그래픽 1: 위쪽에서 원까지 내려오는 흰 직선 (깃대) */
+.idle::before {
+  content: "";
+  position: absolute;
+  left: calc(73 * var(--u));   /* 가운데 정렬: (150 - 4) / 2 */
+  top: calc(30 * var(--u));
+  width: calc(4 * var(--u));
+  height: calc(72 * var(--u)); /* 원의 위쪽 끝(100)까지 */
+  background: #FFFFFF;
+}
+
+/* 깃털 그래픽 2: 아래쪽 절반에 놓인 흰 원 (깃털 눈 무늬) */
+.idle::after {
+  content: "";
+  position: absolute;
+  left: calc(35 * var(--u));   /* 가운데 정렬: (150 - 80) / 2 */
+  top: calc(100 * var(--u));
+  width: calc(80 * var(--u));
+  height: calc(80 * var(--u));
+  border-radius: 50%;
+  background: #FFFFFF;
+}
+
+/* ---------- 6. 키프레임 ---------- */
+
+/*
+  기본 애니메이션 (6초 반복) — 정지 → 떨림 → 펼침 → 정지 → 접힘
+  --i(도형 순서)를 곱해서 도형마다 이동 거리와 각도가 달라집니다.
+*/
+@keyframes idle-peacock {
+  /* 정지 (pause): 겹쳐서 가만히 있음 */
+  0%,
+  18% {
+    transform: translateX(0) rotate(0deg);
+    animation-timing-function: linear;
+  }
+  /* 떨림 (shiver): 잘게 좌우로 흔들림 */
+  20% { transform: translateX(calc(-3 * var(--u))) rotate(-0.8deg); }
+  22% { transform: translateX(calc(3 * var(--u)))  rotate(0.8deg); }
+  24% { transform: translateX(calc(-2 * var(--u))) rotate(-0.5deg); }
+  26% { transform: translateX(calc(2 * var(--u)))  rotate(0.5deg); }
+  28% {
+    transform: translateX(0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.34, 1.3, 0.64, 1);
+  }
+  /* 펼침 (outspread) 후 정지 (pause) */
+  42%,
+  70% {
+    transform: translateX(calc(var(--i) * 22 * var(--u))) rotate(calc(var(--i) * 6deg));
+    animation-timing-function: ease-in-out;
+  }
+  /* 다시 접히고 정지 */
+  84%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+/* 마우스가 들어올 때의 떨림 (2가지 패턴)
+   가로·세로로 불규칙하게 빠르게 흔들리고, 뒤로 갈수록 폭이 줄어들어
+   펼침이 자리 잡을 때쯤 자연스럽게 잦아듭니다. */
+@keyframes shiver-a {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  8%   { transform: translate(calc(-6 * var(--u)), calc(2 * var(--u)))  rotate(-1.2deg); }
+  16%  { transform: translate(calc(5 * var(--u)),  calc(-3 * var(--u))) rotate(1deg); }
+  24%  { transform: translate(calc(-5 * var(--u)), calc(-1 * var(--u))) rotate(-0.9deg); }
+  33%  { transform: translate(calc(6 * var(--u)),  calc(3 * var(--u)))  rotate(1.1deg); }
+  42%  { transform: translate(calc(-4 * var(--u)), calc(2 * var(--u)))  rotate(-0.7deg); }
+  52%  { transform: translate(calc(4 * var(--u)),  calc(-2 * var(--u))) rotate(0.6deg); }
+  62%  { transform: translate(calc(-3 * var(--u)), calc(-2 * var(--u))) rotate(-0.5deg); }
+  72%  { transform: translate(calc(2 * var(--u)),  calc(1 * var(--u)))  rotate(0.3deg); }
+  84%  { transform: translate(calc(-1 * var(--u)), calc(1 * var(--u)))  rotate(-0.2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes shiver-b {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  9%   { transform: translate(calc(5 * var(--u)),  calc(-2 * var(--u))) rotate(1deg); }
+  18%  { transform: translate(calc(-6 * var(--u)), calc(1 * var(--u)))  rotate(-1.2deg); }
+  27%  { transform: translate(calc(4 * var(--u)),  calc(3 * var(--u)))  rotate(0.8deg); }
+  36%  { transform: translate(calc(-5 * var(--u)), calc(-3 * var(--u))) rotate(-1deg); }
+  46%  { transform: translate(calc(3 * var(--u)),  calc(-1 * var(--u))) rotate(0.7deg); }
+  56%  { transform: translate(calc(-3 * var(--u)), calc(2 * var(--u)))  rotate(-0.5deg); }
+  67%  { transform: translate(calc(2 * var(--u)),  calc(-2 * var(--u))) rotate(0.4deg); }
+  78%  { transform: translate(calc(-1 * var(--u)), calc(1 * var(--u)))  rotate(-0.2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ---------- 7. 접근성: 움직임 줄이기 설정 ---------- */
+/* 운영체제에서 "동작 줄이기"를 켠 사용자에게는 반복·떨림을 멈추고
+   펼침만 짧고 부드럽게 보여줍니다. */
+@media (prefers-reduced-motion: reduce) {
+  .idle,
+  .fan.is-shivering .shiver {
+    animation: none;
+  }
+
+  .shape,
+  .fan.is-open .shape {
+    transition: transform 0.3s ease;
+  }
+}
