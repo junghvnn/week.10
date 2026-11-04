@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Motion Study</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 포스터 전체: 1920 × 1080 비율을 유지하며 화면 크기에 맞춰 줄어들고 늘어납니다 -->
+  <main class="poster">
+
+    <!-- 1. 제목 영역 (가장 큰 위계) -->
+    <header class="poster-head">
+      <h1 class="title">ANIMAL MOTION STUDY</h1>
+      <p class="subtitle">An Exploration of Movement</p>
+    </header>
+
+    <!-- 추가 텍스트 (오른쪽 위) -->
+    <p class="extra">INTERACTIVE WEB EXPERIMENT / 2026</p>
+
+    <!-- 2. 메인 그래픽: 공작새의 떨림 · 펼침 · 정지를 표현하는 둥근 사각형 5개 -->
+    <!-- stage = 마우스가 머무는 영역 / fan = 도형 묶음 -->
+    <div class="stage" id="stage" tabindex="0" role="img"
+         aria-label="Five rounded rectangles that shiver, spread out like a fan, and pause">
+      <div class="fan" id="fan">
+        <!--
+          도형 하나는 3겹의 요소로 만들어져 있습니다.
+          .shape  : 마우스 인터랙션(펼침) 위치 — JavaScript가 조절
+          .shiver : 마우스가 들어올 때의 짧은 떨림 — CSS 애니메이션
+          .idle   : 입력이 없어도 반복되는 기본 애니메이션 + 실제로 보이는 사각형
+          각 겹이 transform을 따로 가지므로 서로 덮어쓰지 않고 합쳐집니다.
+          --i 는 가운데(0)를 기준으로 한 도형의 순서입니다.
+        -->
+        <div class="shape" style="--i: -2"><div class="shiver"><div class="idle"></div></div></div>
+        <div class="shape" style="--i: -1"><div class="shiver"><div class="idle"></div></div></div>
+        <div class="shape" style="--i: 0"><div class="shiver"><div class="idle"></div></div></div>
+        <div class="shape" style="--i: 1"><div class="shiver"><div class="idle"></div></div></div>
+        <div class="shape" style="--i: 2"><div class="shiver"><div class="idle"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 3. 설명 (왼쪽 아래) -->
+    <p class="description">
+      Exploring the rhythm, direction, and behavior of natural movement through geometric forms.
+    </p>
+
+    <!-- 4. 행사 정보 (오른쪽 아래) -->
+    <dl class="info">
+      <div class="info-item">
+        <dt>Date</dt>
+        <dd>DEC 10, 2026</dd>
+      </div>
+      <div class="info-item">
+        <dt>Time</dt>
+        <dd>10:00 AM – 06:00 PM</dd>
+      </div>
+      <div class="info-item">
+        <dt>Place</dt>
+        <dd>DIGITAL ART EXHIBITION</dd>
+      </div>
+      <div class="info-item">
+        <dt>Organized by</dt>
+        <dd>MYONGJI UNIVERSITY</dd>
+      </div>
+    </dl>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
